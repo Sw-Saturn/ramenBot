@@ -24,6 +24,12 @@ stages:
       inputs:
         secureFile: '.env'
       displayName: Download secure file
+
+    - script: |
+        echo Downloaded $(env.secureFilePath)
+        mv $(env.secureFilePath) $(System.DefaultWorkingDirectory)
+      displayName: Move .env to Working Directory
+
     - script: |
         docker-compose build
         docker login -u swsaturn -p $(DOCKER_HUB_PWD)
