@@ -23,11 +23,13 @@ stages:
       vmImage: 'ubuntu-latest'
     steps:
     - task: DownloadSecureFile@1
+      name: env
+      displayName: 'Download .env File'
       inputs:
         secureFile: '.env'
-      displayName: Download secure file
 
     - script: |
+        cp $(env.secureFilePath) ./.env
         docker-compose build
         docker login -u swsaturn -p $(DOCKER_HUB_PWD)
         docker push swsaturn/$(imageName)
