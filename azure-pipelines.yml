@@ -10,6 +10,9 @@ resources:
 
 variables:
   tag: '$(Build.BuildId)'
+  - group: secret
+  - name: imageName
+    value: 'ramen_bot:$(Build.BuildId)'
 
 stages:
 - stage: Build
