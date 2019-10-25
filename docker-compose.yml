@@ -1,0 +1,15 @@
+version: '3'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    hostname: ramenbot
+    container_name: "ramen_bot"
+    volumes:
+      - ./:/go/src/github.com/Sw-Saturn/ramenBot
+    tty: true
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
