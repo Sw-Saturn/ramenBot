@@ -5,6 +5,7 @@ services:
       context: .
       dockerfile: ./Dockerfile
     hostname: ramenbot
+    image: swsaturn/ramen_bot
     container_name: "ramen_bot"
     volumes:
       - ./:/go/src/github.com/Sw-Saturn/ramenBot
