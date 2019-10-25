@@ -32,4 +32,4 @@ stages:
         docker-compose build
         docker login -u swsaturn -p $(DOCKER_HUB_PWD)
         docker-compose push swsaturn/$(imageName)
-      displayName: docker-compose build
+      displayName: docker-compose build and push
