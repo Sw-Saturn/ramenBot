@@ -31,5 +31,5 @@ stages:
         cp $(env.secureFilePath) ./.env
         docker-compose build
         docker login -u swsaturn -p $(DOCKER_HUB_PWD)
-        docker push swsaturn/$(imageName)
+        docker-compose push swsaturn/$(imageName)
       displayName: docker-compose build
