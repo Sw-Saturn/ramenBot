@@ -27,7 +27,6 @@ stages:
       displayName: 'Download .env File'
       inputs:
         secureFile: '.env'
-
     - script: |
         cp $(env.secureFilePath) ./.env
         docker-compose build
