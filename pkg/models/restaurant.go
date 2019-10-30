@@ -3,7 +3,7 @@ package models
 import "time"
 
 type GNavi struct {
-	Rest          []struct {
+	Rest []struct {
 		ID         string    `json:"id"`
 		UpdateDate time.Time `json:"update_date"`
 		Name       string    `json:"name"`

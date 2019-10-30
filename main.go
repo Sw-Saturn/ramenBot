@@ -1,59 +1,14 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/line/line-bot-sdk-go/linebot"
-	"io/ioutil"
 	"log"
-	"m/models"
+	"m/pkg/client"
 	"net/http"
-	"net/url"
 	"os"
 )
-
-func generateUrl(lat float64, lon float64) *url.URL{
-	u := &url.URL{}
-	u.Scheme = "https"
-	u.Host = "api.gnavi.co.jp"
-	u.Path = "RestSearchAPI/v3/"
-	q := u.Query()
-	q.Set("keyid", os.Getenv("GNAVI_ACCESS_TOKEN"))
-	q.Set("latitude", fmt.Sprintf("%f", lat))
-	q.Set("longitude", fmt.Sprintf("%f", lon))
-	q.Set("category_s", "RSFST08008")
-	q.Set("category_s", "RSFST08008")
-	q.Set("range", "4")
-	u.RawQuery = q.Encode()
-	return u
-}
-
-func retrieveRestaurants(latitude float64, longitude float64) *models.GNavi{
-	reqUrl := generateUrl(latitude, longitude)
-	req, err := http.NewRequest("GET", reqUrl.String(), nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	client := new(http.Client)
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
-
-	byteArray, _ := ioutil.ReadAll(resp.Body)
-	//fmt.Println(string(byteArray))
-
-	data := new(models.GNavi)
-
-	if err := json.Unmarshal(byteArray, data); err != nil {
-		fmt.Println("JSON Unmarshal error:", err)
-		return nil
-	}
-	return data
-}
-
 
 func envLoad() {
 	err := godotenv.Load()
@@ -97,116 +52,120 @@ func main() {
 
 				case *linebot.LocationMessage:
 					lat, lon := message.Latitude, message.Longitude
-					restaurants := retrieveRestaurants(lat, lon)
+					restaurants := client.RetrieveRestaurants(lat, lon)
 
 					if len(restaurants.Rest) > 0 {
 						var flexColumns []*linebot.BubbleContainer
-						for i := range restaurants.Rest{
+						for i := range restaurants.Rest {
+							access := fmt.Sprintf("不明")
+							if restaurants.Rest[i].Access.Walk != "" {
+								access = fmt.Sprintf("%s %s %s 分", restaurants.Rest[i].Access.Line, restaurants.Rest[i].Access.Station, restaurants.Rest[i].Access.Walk)
+							}
 							var flexContent = &linebot.BubbleContainer{
-								Type:   linebot.FlexContainerTypeBubble,
-								Body:	&linebot.BoxComponent{
-									Type: 		linebot.FlexComponentTypeBox,
-									Layout:		linebot.FlexBoxLayoutTypeVertical,
-									Contents:	[]linebot.FlexComponent{
+								Type: linebot.FlexContainerTypeBubble,
+								Body: &linebot.BoxComponent{
+									Type:   linebot.FlexComponentTypeBox,
+									Layout: linebot.FlexBoxLayoutTypeVertical,
+									Contents: []linebot.FlexComponent{
 										&linebot.TextComponent{
-											Type:     linebot.FlexComponentTypeText,
-											Text:     restaurants.Rest[i].Name,
-											Weight:   linebot.FlexTextWeightTypeBold,
-											Size:     linebot.FlexTextSizeTypeXl,
+											Type:   linebot.FlexComponentTypeText,
+											Text:   restaurants.Rest[i].Name,
+											Weight: linebot.FlexTextWeightTypeBold,
+											Size:   linebot.FlexTextSizeTypeXl,
 										},
 										&linebot.BoxComponent{
-											Type:     linebot.FlexComponentTypeBox,
-											Layout:   linebot.FlexBoxLayoutTypeVertical,
+											Type:   linebot.FlexComponentTypeBox,
+											Layout: linebot.FlexBoxLayoutTypeVertical,
 											Contents: []linebot.FlexComponent{
 												&linebot.BoxComponent{
-													Type:     linebot.FlexComponentTypeBox,
-													Layout:   linebot.FlexBoxLayoutTypeBaseline,
+													Type:   linebot.FlexComponentTypeBox,
+													Layout: linebot.FlexBoxLayoutTypeBaseline,
 													Contents: []linebot.FlexComponent{
 														&linebot.TextComponent{
-															Type:	linebot.FlexComponentTypeText,
-															Text:	"Access",
-															Size:	linebot.FlexTextSizeTypeSm,
-															Flex:	linebot.IntPtr(1),
-															Color:	"#aaaaaa",
+															Type:  linebot.FlexComponentTypeText,
+															Text:  "Access",
+															Size:  linebot.FlexTextSizeTypeSm,
+															Flex:  linebot.IntPtr(1),
+															Color: "#aaaaaa",
 														},
 														&linebot.TextComponent{
-															Type:	linebot.FlexComponentTypeText,
-															Text:	fmt.Sprintf("%s %s %s 分", restaurants.Rest[i].Access.Line, restaurants.Rest[i].Access.Station, restaurants.Rest[i].Access.Walk),
-															Wrap:	true,
-															Size:	linebot.FlexTextSizeTypeSm,
-															Flex:	linebot.IntPtr(5),
-															Color:	"#666666",
+															Type:  linebot.FlexComponentTypeText,
+															Text:  access,
+															Wrap:  true,
+															Size:  linebot.FlexTextSizeTypeSm,
+															Flex:  linebot.IntPtr(5),
+															Color: "#666666",
 														},
 													},
-													Spacing:  linebot.FlexComponentSpacingTypeSm,
+													Spacing: linebot.FlexComponentSpacingTypeSm,
 												},
 												&linebot.BoxComponent{
-													Type:     linebot.FlexComponentTypeBox,
-													Layout:   linebot.FlexBoxLayoutTypeBaseline,
+													Type:   linebot.FlexComponentTypeBox,
+													Layout: linebot.FlexBoxLayoutTypeBaseline,
 													Contents: []linebot.FlexComponent{
 														&linebot.TextComponent{
-															Type:	linebot.FlexComponentTypeText,
-															Text:	"Place",
-															Size:	linebot.FlexTextSizeTypeSm,
-															Flex:	linebot.IntPtr(1),
-															Color:	"#aaaaaa",
+															Type:  linebot.FlexComponentTypeText,
+															Text:  "Place",
+															Size:  linebot.FlexTextSizeTypeSm,
+															Flex:  linebot.IntPtr(1),
+															Color: "#aaaaaa",
 														},
 														&linebot.TextComponent{
-															Type:	linebot.FlexComponentTypeText,
-															Text:	restaurants.Rest[i].Address,
-															Wrap:	true,
-															Size:	linebot.FlexTextSizeTypeSm,
-															Flex:	linebot.IntPtr(5),
-															Color:	"#666666",
+															Type:  linebot.FlexComponentTypeText,
+															Text:  restaurants.Rest[i].Address,
+															Wrap:  true,
+															Size:  linebot.FlexTextSizeTypeSm,
+															Flex:  linebot.IntPtr(5),
+															Color: "#666666",
 														},
 													},
-													Spacing:  linebot.FlexComponentSpacingTypeSm,
+													Spacing: linebot.FlexComponentSpacingTypeSm,
 												},
 												&linebot.BoxComponent{
-													Type:     linebot.FlexComponentTypeBox,
-													Layout:   linebot.FlexBoxLayoutTypeBaseline,
+													Type:   linebot.FlexComponentTypeBox,
+													Layout: linebot.FlexBoxLayoutTypeBaseline,
 													Contents: []linebot.FlexComponent{
 														&linebot.TextComponent{
-															Type:	linebot.FlexComponentTypeText,
-															Text:	"Tel",
-															Size:	linebot.FlexTextSizeTypeSm,
-															Flex:	linebot.IntPtr(1),
-															Color:	"#aaaaaa",
+															Type:  linebot.FlexComponentTypeText,
+															Text:  "Tel",
+															Size:  linebot.FlexTextSizeTypeSm,
+															Flex:  linebot.IntPtr(1),
+															Color: "#aaaaaa",
 														},
 														&linebot.TextComponent{
-															Type:	linebot.FlexComponentTypeText,
-															Text:	restaurants.Rest[i].Tel,
-															Wrap:	true,
-															Size:	linebot.FlexTextSizeTypeSm,
-															Flex:	linebot.IntPtr(5),
-															Color:	"#666666",
+															Type:  linebot.FlexComponentTypeText,
+															Text:  restaurants.Rest[i].Tel,
+															Wrap:  true,
+															Size:  linebot.FlexTextSizeTypeSm,
+															Flex:  linebot.IntPtr(5),
+															Color: "#666666",
 														},
 													},
-													Spacing:  linebot.FlexComponentSpacingTypeSm,
+													Spacing: linebot.FlexComponentSpacingTypeSm,
 												},
 											},
-											Margin:   linebot.FlexComponentMarginTypeLg,
-											Spacing:  linebot.FlexComponentSpacingTypeSm,
+											Margin:  linebot.FlexComponentMarginTypeLg,
+											Spacing: linebot.FlexComponentSpacingTypeSm,
 										},
 									},
 								},
-								Footer:	&linebot.BoxComponent{
-									Type:     linebot.FlexComponentTypeBox,
-									Layout:   linebot.FlexBoxLayoutTypeVertical,
+								Footer: &linebot.BoxComponent{
+									Type:   linebot.FlexComponentTypeBox,
+									Layout: linebot.FlexBoxLayoutTypeVertical,
 									Contents: []linebot.FlexComponent{
 										&linebot.ButtonComponent{
-											Type:    linebot.FlexComponentTypeButton,
-											Action:  linebot.NewURIAction("WEBSITE", restaurants.Rest[i].URL),
-											Height:  linebot.FlexButtonHeightTypeSm,
-											Style:   linebot.FlexButtonStyleTypeLink,
+											Type:   linebot.FlexComponentTypeButton,
+											Action: linebot.NewURIAction("WEBSITE", restaurants.Rest[i].URL),
+											Height: linebot.FlexButtonHeightTypeSm,
+											Style:  linebot.FlexButtonStyleTypeLink,
 										},
 										&linebot.SpacerComponent{
 											Type: linebot.FlexComponentTypeSpacer,
 											Size: linebot.FlexSpacerSizeTypeSm,
 										},
 									},
-									Spacing:  linebot.FlexComponentSpacingTypeSm,
-									Flex:linebot.IntPtr(0),
+									Spacing: linebot.FlexComponentSpacingTypeSm,
+									Flex:    linebot.IntPtr(0),
 								},
 							}
 
@@ -229,15 +188,27 @@ func main() {
 							log.Fatal(err)
 						}
 					} else {
-						_, err = bot.ReplyMessage(
-							event.ReplyToken,
-							linebot.NewLocationMessage(
-								"近くにラーメン屋が見つからなかったよ😢",
-								message.Address,
-								message.Latitude,
-								message.Longitude,
-							),
-						).Do()
+						if len(message.Address) > 0 {
+							_, err = bot.ReplyMessage(
+								event.ReplyToken,
+								linebot.NewLocationMessage(
+									"近くにラーメン屋が見つからなかったよ😢",
+									message.Address,
+									message.Latitude,
+									message.Longitude,
+								),
+							).Do()
+						} else {
+							_, err = bot.ReplyMessage(
+								event.ReplyToken,
+								linebot.NewLocationMessage(
+									"近くにラーメン屋が見つからなかったよ😢",
+									"住所不明",
+									message.Latitude,
+									message.Longitude,
+								),
+							).Do()
+						}
 						if err != nil {
 							log.Fatal(err)
 						}
@@ -247,7 +218,7 @@ func main() {
 		}
 	})
 
-	if err := http.ListenAndServe(":" + os.Getenv("PORT"), nil); err != nil {
+	if err := http.ListenAndServe(":"+os.Getenv("PORT"), nil); err != nil {
 		log.Fatal(err)
 	}
 }
