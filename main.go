@@ -57,7 +57,7 @@ func main() {
 					if len(restaurants.Rest) > 0 {
 						var flexColumns []*linebot.BubbleContainer
 						for i := range restaurants.Rest {
-							googleMapsUrl := fmt.Sprintf("https://www.google.com/maps/dir/?api=1&destination=%s,%s",restaurants.Rest[i].Latitude,restaurants.Rest[i].Longitude)
+							googleMapsURL := fmt.Sprintf("https://www.google.com/maps/dir/?api=1&destination=%s,%s", restaurants.Rest[i].Latitude, restaurants.Rest[i].Longitude)
 							access := fmt.Sprintf("不明")
 							if restaurants.Rest[i].Access.Walk != "" {
 								access = fmt.Sprintf("%s %s %s 分", restaurants.Rest[i].Access.Line, restaurants.Rest[i].Access.Station, restaurants.Rest[i].Access.Walk)
@@ -162,7 +162,7 @@ func main() {
 										},
 										&linebot.ButtonComponent{
 											Type:   linebot.FlexComponentTypeButton,
-											Action: linebot.NewURIAction("Route", googleMapsUrl),
+											Action: linebot.NewURIAction("Route", googleMapsURL),
 											Height: linebot.FlexButtonHeightTypeSm,
 											Style:  linebot.FlexButtonStyleTypeLink,
 										},

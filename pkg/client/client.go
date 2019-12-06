@@ -11,7 +11,7 @@ import (
 	"os"
 )
 
-func generateUrl(lat float64, lon float64) *url.URL {
+func generateURL(lat float64, lon float64) *url.URL {
 	u := &url.URL{}
 	u.Scheme = "https"
 	u.Host = "api.gnavi.co.jp"
@@ -27,9 +27,10 @@ func generateUrl(lat float64, lon float64) *url.URL {
 	return u
 }
 
+//RetrieveRestaurants is Getting Restaurants information from location information.
 func RetrieveRestaurants(latitude float64, longitude float64) *models.GNavi {
-	reqUrl := generateUrl(latitude, longitude)
-	req, err := http.NewRequest("GET", reqUrl.String(), nil)
+	reqURL := generateURL(latitude, longitude)
+	req, err := http.NewRequest("GET", reqURL.String(), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,10 +42,7 @@ func RetrieveRestaurants(latitude float64, longitude float64) *models.GNavi {
 	defer resp.Body.Close()
 
 	byteArray, _ := ioutil.ReadAll(resp.Body)
-	//fmt.Println(string(byteArray))
-
 	data := new(models.GNavi)
-
 	if err := json.Unmarshal(byteArray, data); err != nil {
 		fmt.Println("JSON Unmarshal error:", err)
 		return nil
