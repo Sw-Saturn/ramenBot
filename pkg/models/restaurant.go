@@ -2,6 +2,7 @@ package models
 
 import "time"
 
+//GNavi is that can be acquired from the GNavi API
 type GNavi struct {
 	Rest []struct {
 		ID         string    `json:"id"`
