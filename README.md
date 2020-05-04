@@ -6,7 +6,7 @@
 ![GitHub](https://img.shields.io/github/license/Sw-Saturn/ramenBot?style=for-the-badge)
 
 ## Introduction
-位置情報を送ると近くのラーメン屋を返すLINEBot
+近くのラーメン屋を教えてくれるLINEBot
 
 ## Installing
 
